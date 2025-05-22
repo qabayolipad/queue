@@ -1,46 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>UDM Queue System</title>
-  <link rel="stylesheet" href="style.css"/>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Queue System - Dashboard</title>
+<style>
+  body { font-family: Arial, sans-serif; background: beige; color: #333; }
+  #queueForm { display: none; flex-direction: column; gap: 10px; max-width: 400px; margin: auto; }
+  .welcome { margin: 20px auto; max-width: 400px; text-align: center; }
+  button.logout { margin: 20px auto; display: block; }
+</style>
 </head>
 <body>
-  <header>
-    <h1>UDM Queue System</h1>
-    <nav>
-      <a href="login.html">Login</a>
-      <a href="register.html">Register</a>
-    </nav>
-  </header>
 
-  <main>
-    <section class="welcome">
-      <h2>Welcome to UDM Queue System</h2>
-      <p>Please log in or register first. After logging in, you can join the queue by selecting your role, service, and purpose.</p>
-    </section>
+<div class="welcome"></div>
 
-    <form id="queueForm" style="display: none;">
-      <input type="text" placeholder="Full Name" name="name" required />
-      <select name="role" required>
-        <option value="">Select Role</option>
-        <option>Student</option>
-        <option>Staff</option>
-        <option>Professor</option>
-      </select>
-      <select name="service" required>
-        <option value="">Select Service</option>
-        <option>Registrar</option>
-        <option>Clinic</option>
-        <option>Guidance</option>
-      </select>
-      <textarea name="purpose" rows="3" placeholder="Purpose of Visit" required></textarea>
-      <button type="submit">Join Queue</button>
-    </form>
-  </main>
+<form id="queueForm">
+  <input type="text" name="name" placeholder="Your Name" required />
+  <select name="role" required>
+    <option value="" disabled selected>Select Role</option>
+    <option value="Student">Student</option>
+    <option value="Staff">Staff</option>
+    <option value="Professor">Professor</option>
+  </select>
+  <select name="service" required>
+    <option value="" disabled selected>Select Service</option>
+    <option value="Registrar">Registrar</option>
+    <option value="Clinic">Clinic</option>
+    <option value="Guidance">Guidance</option>
+  </select>
+  <input type="text" name="purpose" placeholder="Purpose" required />
+  <button type="submit">Join Queue</button>
+</form>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  <script src="script.js"></script>
+<button class="logout">Logout</button>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/supabase.min.js"></script>
+<script src="script.js"></script>
+
 </body>
 </html>
