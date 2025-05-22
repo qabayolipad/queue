@@ -2,8 +2,27 @@ const supabaseUrl = 'https://kkvlvhgwnurqffizviss.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtrdmx2aGd3bnVycWZmaXp2aXNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NDg5NzYsImV4cCI6MjA2MzUyNDk3Nn0.COFES5GgdsFDB7nhUyf_bK9sC55-lMyYb7YL8NTvkfE';
 const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
+// On page load - check session
+async function checkSession() {
+  const { data, error } = await supabase.auth.getSession();
+  if (error) {
+    alert('Error checking session: ' + error.message);
+    return;
+  }
+  if (!data.session) {
+    // No logged in user, redirect to login page
+    window.location.href = 'login.html';
+  } else {
+    // Show welcome message and queue form
+    document.querySelector('.welcome').innerHTML = `<h2>Welcome, ${data.session.user.email}</h2><p>Fill out the form below to join the queue.</p>`;
+    document.getElementById('queueForm').style.display = 'flex';
+  }
+}
+
+checkSession();
+
 // Queue form submit
-document.getElementById('queueForm')?.addEventListener('submit', async (e) => {
+document.getElementById('queueForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const name = e.target.name.value;
   const role = e.target.role.value;
@@ -19,38 +38,12 @@ document.getElementById('queueForm')?.addEventListener('submit', async (e) => {
   }
 });
 
-// Check auth session and show form if logged in
-supabase.auth.getSession().then(({ data }) => {
-  if (data.session) {
-    document.querySelector('.welcome').innerHTML = `<h2>Welcome, ${data.session.user.email}</h2><p>Fill out the form below to join the queue.</p>`;
-    document.getElementById('queueForm').style.display = 'flex';
-  }
-});
-
-// Register form submit
-document.getElementById('registerForm')?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const email = e.target.email.value;
-  const password = e.target.password.value;
-  const { error } = await supabase.auth.signUp({ email, password });
+// Logout button
+document.querySelector('.logout').addEventListener('click', async () => {
+  const { error } = await supabase.auth.signOut();
   if (error) {
-    alert('Registration failed: ' + error.message);
+    alert('Logout failed: ' + error.message);
   } else {
-    alert('Registration successful! Please check your email and then log in.');
-    window.location.href = "login.html";  // Redirect after register
-  }
-});
-
-// Login form submit
-document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const email = e.target.email.value;
-  const password = e.target.password.value;
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) {
-    alert('Login failed: ' + error.message);
-  } else {
-    alert('Login successful!');
-    window.location.href = "index.html";  // Redirect after login
+    window.location.href = 'login.html';
   }
 });
