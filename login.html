@@ -1,10 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Login</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Login</title>
+<style>
+  body { background: beige; font-family: Arial, sans-serif; color: #333; }
+  form { max-width: 400px; margin: 50px auto; display: flex; flex-direction: column; gap: 10px; }
+  input, button { padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+  button { background: #b58900; color: white; cursor: pointer; }
+  a { text-align: center; display: block; margin-top: 15px; color: #006400; text-decoration: none; }
+</style>
 </head>
 <body>
+
+<h2 style="text-align:center;">Login</h2>
 
 <form id="loginForm">
   <input type="email" name="email" placeholder="Email" required />
@@ -12,10 +22,12 @@
   <button type="submit">Login</button>
 </form>
 
+<a href="register.html">Don't have an account? Register</a>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/supabase.min.js"></script>
 <script>
   const supabaseUrl = 'https://kkvlvhgwnurqffizviss.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtrdmx2aGd3bnVycWZmaXp2aXNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NDg5NzYsImV4cCI6MjA2MzUyNDk3Nn0.COFES5GgdsFDB7nhUyf_bK9sC55-lMyYb7YL8NTvkfE'; 
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtrdmx2aGd3bnVycWZmaXp2aXNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NDg5NzYsImV4cCI6MjA2MzUyNDk3Nn0.COFES5GgdsFDB7nhUyf_bK9sC55-lMyYb7YL8NTvkfE'; // Put your anon key here
   const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -24,13 +36,12 @@
     const email = e.target.email.value;
     const password = e.target.password.value;
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
       alert('Login failed: ' + error.message);
     } else {
       alert('Login successful!');
-      // **Redirect to the queue page after login**
       window.location.href = 'index.html';
     }
   });
