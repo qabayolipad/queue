@@ -4,54 +4,61 @@ const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
 async function checkSession() {
   const { data, error } = await supabase.auth.getSession();
-  if (error || !data.session) {
-    window.location.href = 'login.html';
-    return;
+  if (data?.session) {
+    window.location.href = "index.html";
   }
-  const email = data.session.user.email;
-  document.querySelector('.welcome').innerHTML = `
-    <h2>Welcome, ${email}</h2>
-    <p>Please fill out the form to join the queue.</p>
-  `;
-  document.getElementById('queueForm').style.display = 'flex';
 }
 
-checkSession();
-
-document.getElementById('queueForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const name = e.target.name.value;
-  const role = e.target.role.value;
-  const service = e.target.service.value;
-  const purpose = e.target.purpose.value;
-
-  const { error } = await supabase.from('queue').insert([{ name, role, service, purpose }]);
-
-  if (error) {
-    alert('Failed to join queue: ' + error.message);
-  } else {
-    const { data, error: fetchError } = await supabase
-      .from('queue')
-      .select()
-      .order('id', { ascending: true });
-
-    if (!fetchError && data.length) {
-      const position = data.length;
-      const waitTime = position * 2; // approx 2 mins per person
-      document.getElementById('queueInfo').innerHTML = `
-        <strong>You are #${position} in the queue.</strong><br/>
-        Estimated wait time: ${waitTime} minutes.
-      `;
-      document.getElementById('queueInfo').style.display = 'block';
-    }
-
-    e.target.reset();
-  }
-});
-
-document.querySelector('.logout').addEventListener('click', async () => {
-  const { error } = await supabase.auth.signOut();
-  if (!error) {
+// Registration
+if (document.getElementById('registerForm')) {
+  document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = e.target.email.value;
+    const password = e.target.password.value;
+    const { error } = await supabase.auth.signUp({ email, password });
+    if (error) return alert('Registration failed: ' + error.message);
+    alert("Registered successfully! Please log in.");
     window.location.href = 'login.html';
-  }
-});
+  });
+}
+
+// Login
+if (document.getElementById('loginForm')) {
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = e.target.email.value;
+    const password = e.target.password.value;
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return alert('Login failed: ' + error.message);
+    window.location.href = 'index.html';
+  });
+}
+
+// Queue
+if (document.getElementById('queueForm')) {
+  window.addEventListener('load', async () => {
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) return window.location.href = "login.html";
+
+    document.querySelector('.welcome').innerHTML = `Welcome, ${data.session.user.email}`;
+  });
+
+  document.getElementById('queueForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = e.target.name.value;
+    const role = e.target.role.value;
+    const service = e.target.service.value;
+    const purpose = e.target.purpose.value;
+
+    const { data, error } = await supabase.from('queue').insert([{ name, role, service, purpose }]).select();
+    if (error) return alert('Error: ' + error.message);
+    const id = data[0].id;
+    alert(`You are successfully added! Your queue number is: ${id}`);
+    e.target.reset();
+  });
+
+  document.querySelector('.logout').addEventListener('click', async () => {
+    await supabase.auth.signOut();
+    window.location.href = 'login.html';
+  });
+}
