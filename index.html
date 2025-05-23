@@ -12,7 +12,6 @@
   input, select, button { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
   button { background: #b58900; color: white; cursor: pointer; font-weight: bold; }
   button.logout { margin-top: 15px; background: #006400; }
-  p.instructions { margin-top: 0; font-size: 0.9rem; color: #555; }
 </style>
 </head>
 <body>
@@ -20,8 +19,8 @@
 <div class="container">
   <div class="welcome"></div>
 
-  <form id="queueForm">
-    <p class="instructions">Fill out the form to join the queue for your selected service.</p>
+  <form id="queueForm" style="display:none;">
+    <p>Fill out the form to join the queue for your selected service.</p>
 
     <input type="text" name="name" placeholder="Your Name" required />
     <select name="role" required>
@@ -40,7 +39,7 @@
     <button type="submit">Join Queue</button>
   </form>
 
-  <button class="logout">Logout</button>
+  <button class="logout" style="display:none;">Logout</button>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/supabase.min.js"></script>
@@ -49,50 +48,83 @@
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtrdmx2aGd3bnVycWZmaXp2aXNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NDg5NzYsImV4cCI6MjA2MzUyNDk3Nn0.COFES5GgdsFDB7nhUyf_bK9sC55-lMyYb7YL8NTvkfE'; // Put your anon key here
   const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-  // Check user session and show form or redirect
+  // Check user session on load
   async function checkSession() {
     const { data, error } = await supabase.auth.getSession();
+
     if (error) {
       alert('Error checking session: ' + error.message);
       return;
     }
+
     if (!data.session) {
-      // Not logged in -> redirect to login page
+      // No session, redirect to login page
       window.location.href = 'login.html';
     } else {
-      document.querySelector('.welcome').innerHTML =
-        `<h2>Welcome, ${data.session.user.email}</h2>
-         <p>Fill out the form below to join the queue.</p>`;
+      const userEmail = data.session.user.email;
+      document.querySelector('.welcome').innerHTML = `
+        <h2>Welcome, ${userEmail}</h2>
+        <p>Fill out the form below to join the queue.</p>
+      `;
       document.getElementById('queueForm').style.display = 'flex';
+      document.querySelector('.logout').style.display = 'block';
     }
   }
+
   checkSession();
 
-  // Submit queue form
+  // Handle queue form submit
   document.getElementById('queueForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const name = e.target.name.value.trim();
-    const role = e.target.role.value;
-    const service = e.target.service.value;
-    const purpose = e.target.purpose.value.trim();
+    const form = e.target;
+    const name = form.name.value.trim();
+    const role = form.role.value;
+    const service = form.service.value;
+    const purpose = form.purpose.value.trim();
 
     if (!name || !role || !service || !purpose) {
-      alert('Please fill all fields');
+      alert('Please fill in all fields');
       return;
     }
 
-    const { error } = await supabase.from('queue').insert([{ name, role, service, purpose }]);
+    // Insert queue data
+    const { error: insertError } = await supabase.from('queue').insert([{ name, role, service, purpose }]);
 
-    if (error) {
-      alert('Failed to join queue: ' + error.message);
-    } else {
-      alert('You have been added to the queue!');
-      e.target.reset();
+    if (insertError) {
+      alert('Failed to join queue: ' + insertError.message);
+      return;
     }
+
+    // Fetch your position in the queue for the selected service
+    const { data: queueData, error: fetchError } = await supabase
+      .from('queue')
+      .select('*', { count: 'exact' })
+      .eq('service', service)
+      .order('id', { ascending: true });
+
+    if (fetchError) {
+      alert('Could not retrieve queue position: ' + fetchError.message);
+      return;
+    }
+
+    // Find your position by finding your entry
+    const yourEntryIndex = queueData.findIndex(q => q.name === name && q.role === role && q.service === service && q.purpose === purpose);
+
+    if (yourEntryIndex === -1) {
+      alert('Error finding your queue position.');
+      return;
+    }
+
+    const position = yourEntryIndex + 1; // Because index starts at 0
+    const estimatedWaitMinutes = (position - 1) * 5; // For example, 5 minutes per person
+
+    alert(`You are number ${position} in the queue for ${service}.\nEstimated wait time: approx. ${estimatedWaitMinutes} minutes.`);
+
+    form.reset();
   });
 
-  // Logout
+  // Logout button
   document.querySelector('.logout').addEventListener('click', async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
