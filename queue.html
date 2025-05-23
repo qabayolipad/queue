@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Queue - University Queue</title>
+  <style>
+    body {
+      background-color: #f5f5dc; /* beige */
+      color: #006400; /* dark green */
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 30px auto;
+      padding: 20px;
+      border: 2px solid #ffd700; /* gold */
+      border-radius: 8px;
+    }
+    .welcome {
+      margin-bottom: 20px;
+      font-weight: bold;
+      font-size: 1.2em;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    input, select, button {
+      padding: 10px;
+      border: 1px solid #006400;
+      border-radius: 4px;
+      font-size: 1em;
+    }
+    button {
+      background-color: #ffd700; /* gold */
+      color: #000;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .logout {
+      margin-top: 15px;
+      background-color: #006400;
+      color: #fff;
+      border: none;
+      padding: 10px;
+      width: 100%;
+      cursor: pointer;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="welcome"></div>
+
+  <form id="queueForm" style="display:none;">
+    <input type="text" name="name" placeholder="Your Name" required />
+    <select name="role" required>
+      <option value="" disabled selected>Select Role</option>
+      <option value="Student">Student</option>
+      <option value="Staff">Staff</option>
+      <option value="Professor">Professor</option>
+    </select>
+    <select name="service" required>
+      <option value="" disabled selected>Select Service</option>
+      <option value="Registrar">Registrar</option>
+      <option value="Clinic">Clinic</option>
+      <option value="Guidance">Guidance</option>
+    </select>
+    <input type="text" name="purpose" placeholder="Purpose" required />
+    <button type="submit">Join Queue</button>
+  </form>
+
+  <button class="logout">Logout</button>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const supabaseUrl = 'https://kkvlvhgwnurqffizviss.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtrdmx2aGd3bnVycWZmaXp2aXNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NDg5NzYsImV4cCI6MjA2MzUyNDk3Nn0.COFES5GgdsFDB7nhUyf_bK9sC55-lMyYb7YL8NTvkfE';
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    const welcomeDiv = document.querySelector('.welcome');
+    const queueForm = document.getElementById('queueForm');
+    const logoutBtn = document.querySelector('.logout');
+
+    async function checkUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        window.location.href = 'index.html';
+        return;
+      }
+      welcomeDiv.textContent = `Welcome, ${user.email}`;
+      queueForm.style.display = 'flex';
+    }
+
+    queueForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(queueForm);
+      const name = formData.get('name').trim();
+      const role = formData.get('role');
+      const service = formData.get('service');
+      const purpose = formData.get('purpose').trim();
+
+      if (!name || !role || !service || !purpose) {
+        alert('Please fill all fields.');
+        return;
+      }
+
+      // Insert queue data to supabase
+      const { data, error } = await supabase
+        .from('queue')
+        .insert([{ name, role, service, purpose, created_at: new Date().toISOString() }])
+        .select()
+        .single();
+
+      if (error) {
+        alert('Error adding to queue: ' + error.message);
+        return;
+      }
+
+      // Fetch current queue count for this service
+      const { count, error: countError } = await supabase
+        .from('queue')
+        .select('*', { count: 'exact', head: true })
+        .eq('service', service)
+        .lte('created_at', data.created_at);
+
+      if (countError) {
+        alert('Error calculating queue position: ' + countError.message);
+        return;
+      }
+
+      // Estimate wait time: 10 minutes per person in queue before you
+      const position = count;
+      const estimatedWait = (position - 1) * 10;
+
+      alert(`You joined the queue.\nQueue Number: ${position}\nEstimated Wait Time: ${estimatedWait} minutes`);
+
+      queueForm.reset();
+    });
+
+    logoutBtn.addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      window.location.href = 'index.html';
+    });
+
+    checkUser();
+  </script>
+</body>
+</html>
