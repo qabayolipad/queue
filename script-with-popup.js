@@ -1,6 +1,6 @@
 
 const supabaseUrl = 'https://kkvlvhgwnurqffizviss.supabase.co';
-const supabaseKey = 'YOUR_KEY_HERE';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtrdmx2aGd3bnVycWZmaXp2aXNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NDg5NzYsImV4cCI6MjA2MzUyNDk3Nn0.COFES5GgdsFDB7nhUyf_bK9sC55-lMyYb7YL8NTvkfE';
 const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
 // On page load
