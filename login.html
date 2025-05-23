@@ -1,21 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Login - University Queue</title>
-<style>
-  body { background: beige; font-family: Arial, sans-serif; color: #333; }
-  .container { max-width: 400px; margin: 80px auto; padding: 20px; background: #f4f1de; border-radius: 8px; }
-  h2 { text-align: center; color: #b58900; }
-  form { display: flex; flex-direction: column; gap: 15px; }
-  input, button { padding: 10px; font-size: 1rem; border: 1px solid #ccc; border-radius: 4px; }
-  button { background: #b58900; color: white; font-weight: bold; cursor: pointer; }
-  .link { text-align: center; margin-top: 15px; }
-  .link a { color: #006400; text-decoration: none; }
-</style>
+  <title>Login</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body onload="checkSession()">
   <div class="container">
     <h2>Login</h2>
     <form id="loginForm">
@@ -23,32 +12,9 @@
       <input type="password" name="password" placeholder="Password" required />
       <button type="submit">Login</button>
     </form>
-    <div class="link">
-      Don't have an account? <a href="register.html">Register here</a>
-    </div>
+    <p style="text-align:center;margin-top:10px;">No account? <a href="register.html">Register</a></p>
   </div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/supabase.min.js"></script>
-<script>
-  const supabaseUrl = 'https://kkvlvhgwnurqffizviss.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtrdmx2aGd3bnVycWZmaXp2aXNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NDg5NzYsImV4cCI6MjA2MzUyNDk3Nn0.COFES5GgdsFDB7nhUyf_bK9sC55-lMyYb7YL8NTvkfE';
-  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-  const form = document.getElementById('loginForm');
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = form.email.value.trim();
-    const password = form.password.value;
-
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-    if (error) {
-      alert('Login failed: ' + error.message);
-    } else {
-      alert('Login successful!');
-      window.location.href = 'index.html';
-    }
-  });
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
