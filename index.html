@@ -1,32 +1,34 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Queue System</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>University Queue System</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="container">
-    <h2>University Queue System</h2>
     <div class="welcome"></div>
-    <form id="queueForm">
+    <form id="queueForm" style="display:none;">
       <input type="text" name="name" placeholder="Your Name" required />
       <select name="role" required>
         <option value="">Select Role</option>
-        <option>Student</option>
-        <option>Staff</option>
-        <option>Professor</option>
+        <option value="Student">Student</option>
+        <option value="Staff">Staff</option>
+        <option value="Professor">Professor</option>
       </select>
       <select name="service" required>
         <option value="">Select Service</option>
-        <option>Registrar</option>
-        <option>Clinic</option>
-        <option>Guidance</option>
+        <option value="Registrar">Registrar</option>
+        <option value="Clinic">Clinic</option>
+        <option value="Guidance">Guidance</option>
       </select>
       <input type="text" name="purpose" placeholder="Purpose" required />
       <button type="submit">Join Queue</button>
     </form>
-    <button class="logout" style="margin-top: 20px;">Logout</button>
+    <button class="logout">Logout</button>
   </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script src="script.js"></script>
 </body>
