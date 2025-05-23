@@ -1,139 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>University Queue System</title>
-<style>
-  body { background: beige; font-family: Arial, sans-serif; color: #333; }
-  .container { max-width: 500px; margin: 40px auto; }
-  .welcome { background: #dcd6b8; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 20px; }
-  form { display: flex; flex-direction: column; gap: 15px; background: #f4f1de; padding: 20px; border-radius: 8px; }
-  input, select, button { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
-  button { background: #b58900; color: white; cursor: pointer; font-weight: bold; }
-  button.logout { margin-top: 15px; background: #006400; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>University Queue System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet"/>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8f5e4; /* Beige */
+      color: #2d4739; /* Deep Green */
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    h1, h2 {
+      color: #4f7c56; /* Green */
+    }
+    form {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    input, select, button {
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #d4af37; /* Gold */
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
+    .logout {
+      margin-top: 20px;
+      background-color: #a23e3e; /* Red logout button */
+    }
+    .popup {
+      background: #fff8dc;
+      padding: 10px;
+      border: 1px solid #aaa;
+      margin-top: 10px;
+      display: none;
+    }
+  </style>
 </head>
 <body>
-
-<div class="container">
+  <h1>University Queue System</h1>
   <div class="welcome"></div>
 
-  <form id="queueForm" style="display:none;">
-    <p>Fill out the form to join the queue for your selected service.</p>
-
+  <form id="queueForm">
     <input type="text" name="name" placeholder="Your Name" required />
+    
     <select name="role" required>
-      <option value="" disabled selected>Select Role</option>
+      <option value="">Select Role</option>
       <option value="Student">Student</option>
       <option value="Staff">Staff</option>
       <option value="Professor">Professor</option>
     </select>
+    
     <select name="service" required>
-      <option value="" disabled selected>Select Service</option>
+      <option value="">Select Service</option>
       <option value="Registrar">Registrar</option>
       <option value="Clinic">Clinic</option>
       <option value="Guidance">Guidance</option>
     </select>
-    <input type="text" name="purpose" placeholder="Purpose" required />
+    
+    <input type="text" name="purpose" placeholder="Purpose of Visit" required />
     <button type="submit">Join Queue</button>
   </form>
 
-  <button class="logout" style="display:none;">Logout</button>
-</div>
+  <div class="popup" id="queueInfo"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/supabase.min.js"></script>
-<script>
-  const supabaseUrl = 'https://kkvlvhgwnurqffizviss.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtrdmx2aGd3bnVycWZmaXp2aXNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NDg5NzYsImV4cCI6MjA2MzUyNDk3Nn0.COFES5GgdsFDB7nhUyf_bK9sC55-lMyYb7YL8NTvkfE';
-  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+  <button class="logout">Logout</button>
 
-  async function checkSession() {
-    const { data, error } = await supabase.auth.getSession();
-
-    if (error) {
-      alert('Error checking session: ' + error.message);
-      return;
-    }
-
-    if (!data.session) {
-      window.location.href = 'login.html';  // Redirect to login if not logged in
-    } else {
-      const userEmail = data.session.user.email;
-      document.querySelector('.welcome').innerHTML = `
-        <h2>Welcome, ${userEmail}</h2>
-        <p>Fill out the form below to join the queue.</p>
-      `;
-      document.getElementById('queueForm').style.display = 'flex';
-      document.querySelector('.logout').style.display = 'block';
-    }
-  }
-
-  checkSession();
-
-  document.getElementById('queueForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const form = e.target;
-    const name = form.name.value.trim();
-    const role = form.role.value;
-    const service = form.service.value;
-    const purpose = form.purpose.value.trim();
-
-    if (!name || !role || !service || !purpose) {
-      alert('Please fill in all fields');
-      return;
-    }
-
-    // Add to queue table
-    const { error: insertError } = await supabase.from('queue').insert([{ name, role, service, purpose }]);
-
-    if (insertError) {
-      alert('Failed to join queue: ' + insertError.message);
-      return;
-    }
-
-    // Get the queue for this service
-    const { data: queueData, error: fetchError } = await supabase
-      .from('queue')
-      .select('*', { count: 'exact' })
-      .eq('service', service)
-      .order('id', { ascending: true });
-
-    if (fetchError) {
-      alert('Could not get queue data: ' + fetchError.message);
-      return;
-    }
-
-    // Find your position (last added)
-    const yourEntryIndex = queueData.findIndex(q =>
-      q.name === name &&
-      q.role === role &&
-      q.service === service &&
-      q.purpose === purpose
-    );
-
-    if (yourEntryIndex === -1) {
-      alert('Error finding your queue position.');
-      return;
-    }
-
-    const position = yourEntryIndex + 1;
-    const estimatedWait = (position - 1) * 5;
-
-    alert(`You are number ${position} in the ${service} queue.\nEstimated wait time: ~${estimatedWait} minutes.`);
-
-    form.reset();
-  });
-
-  document.querySelector('.logout').addEventListener('click', async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      alert('Logout failed: ' + error.message);
-    } else {
-      window.location.href = 'login.html';
-    }
-  });
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
