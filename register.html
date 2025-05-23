@@ -29,8 +29,8 @@
 <body>
   <h1>Register for Queue System</h1>
   <form id="registerForm">
-    <input type="email" id="email" placeholder="Email" required /><br/>
-    <input type="password" id="password" placeholder="Password" required minlength="6" /><br/>
+    <input type="email" id="email" placeholder="Email" required />
+    <input type="password" id="password" placeholder="Password" required minlength="6" />
     <button type="submit">Register</button>
   </form>
   <a href="index.html">Already have an account? Login here</a>
@@ -38,25 +38,32 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const supabaseUrl = 'https://kkvlvhgwnurqffizviss.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtrdmx2aGd3bnVycWZmaXp2aXNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NDg5NzYsImV4cCI6MjA2MzUyNDk3Nn0.COFES5GgdsFDB7nhUyf_bK9sC55-lMyYb7YL8NTvkfE';
+    const supabaseKey = 'YOUR_ANON_KEY_HERE'; // Replace with your anon key
     const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    // Redirect if already logged in
+    window.addEventListener('load', async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        alert("Already logged in. Redirecting to Dashboard...");
+        window.location.href = 'queue.html';
+      }
+    });
 
     document.getElementById('registerForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = e.target.email.value;
       const password = e.target.password.value;
-      const { error } = await supabase.auth.signUp({ email, password });
+
+      const { data, error } = await supabase.auth.signUp({ email, password });
+
       if (error) {
         alert('Registration failed: ' + error.message);
+        console.error("Registration error:", error);
       } else {
-        alert('Registration successful! Please check your email for verification.');
+        alert('Registration successful! Please check your email to verify your account.');
         window.location.href = 'index.html';
       }
-    });
-
-    // If already logged in, redirect to queue
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) window.location.href = 'queue.html';
     });
   </script>
 </body>
